@@ -62,7 +62,7 @@
   function desenharNumeros(alvo) {
     const n = lerNumeros();
     const pct = n.jogos ? Math.round((100 * n.vitorias) / n.jogos) : 0;
-    const hoje = n.ultimoDia === J.numeroDoDia() ? n.historico.at(-1) : null;
+    const hoje = n.ultimoDia === J.numeroDoDia() ? n.historico[n.historico.length - 1] : null;
     const maior = Math.max(1, ...n.emQuantas);
     const barra = (rotulo, qtd, ehHoje, perdeu) =>
       `<div class="barra${ehHoje ? ' hoje' : ''}${perdeu ? ' perdeu' : ''}"><span>${rotulo}</span><i style="width:${Math.max(8, (100 * qtd) / maior)}%">${qtd}</i></div>`;
@@ -334,7 +334,7 @@
   $('confirma').addEventListener('close', () => {
     if ($('confirma').returnValue !== 'sim') return;
     E.marcasLetra = {}; E.marcasPos = Array(N).fill(null);
-    if (E.fim === 'ganhou') J.normalizar(E.palpites.at(-1).palavra).split('').forEach((l, i) => { E.marcasPos[i] = l; });
+    if (E.fim === 'ganhou') J.normalizar(E.palpites[E.palpites.length - 1].palavra).split('').forEach((l, i) => { E.marcasPos[i] = l; });
     salvar(); desenhar();
   });
   $('btn-ajuda').addEventListener('click', () => abrir($('ajuda')));
