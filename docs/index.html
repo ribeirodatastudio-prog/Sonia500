@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>Sonia500</title>
+  <meta name="theme-color" content="#E9EEF6" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0E1A30" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Sonia500">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icones/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="icones/icone-192.png">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    // Aplica o tema antes de desenhar, para não piscar
+    try { const t = localStorage.getItem('sonia500:tema'); if (t === 'claro' || t === 'escuro') document.documentElement.dataset.tema = t; } catch (e) {}
+  </script>
+</head>
+<body>
+  <header class="topo">
+    <button class="icone" id="btn-ajuda" aria-label="Como jogar">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.2 9.2a2.9 2.9 0 1 1 4.1 2.6c-.8.4-1.3 1-1.3 1.9v.4"/><circle cx="12" cy="17.3" r=".6" class="cheio"/></svg>
+    </button>
+    <h1>Sonia500</h1>
+    <div class="lado">
+    <button class="icone" id="btn-numeros" aria-label="Seus números">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V12M12 20V5M19 20v-5"/></svg>
+    </button>
+    <button class="icone" id="btn-tema" aria-label="Trocar tema claro ou escuro">
+      <svg viewBox="0 0 24 24" aria-hidden="true" class="sol"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true" class="lua"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+    </button>
+    </div>
+  </header>
+
+  <main class="tabuleiro" id="tabuleiro">
+    <div class="grade" id="grade" role="grid" aria-label="Seus palpites"></div>
+  </main>
+
+  <div class="acoes">
+    <button class="acao" id="btn-dica">Dica</button>
+    <button class="acao" id="btn-limpar">Limpar marcas</button>
+  </div>
+
+  <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+
+  <nav class="teclado" id="teclado" aria-label="Teclado"></nav>
+
+  <dialog id="ajuda" class="janela">
+    <h2>Como jogar</h2>
+    <p>Descubra a palavra de 5 letras em até 8 tentativas.</p>
+    <p>As bolinhas mostram <strong>quantas</strong> letras você acertou, mas não quais:</p>
+    <ul class="legenda">
+      <li><span class="bola verde">1</span> no lugar certo</li>
+      <li><span class="bola amarela">2</span> em outro lugar</li>
+      <li><span class="bola vermelha">2</span> não estão na palavra</li>
+    </ul>
+    <p>Toque num quadrado da linha que você está escrevendo para escolher onde a letra vai. Assim dá para começar pelo fim.</p>
+    <p>Toque numa letra de um palpite já enviado para anotar: vermelho, amarelo, verde, sem cor. No teclado, segure a letra.</p>
+    <p>Acentos não contam.</p>
+    <form method="dialog"><button class="principal">Entendi</button></form>
+  </dialog>
+
+  <dialog id="fim" class="janela">
+    <h2 id="fim-titulo"></h2>
+    <p class="revelada" id="fim-palavra"></p>
+    <p id="fim-texto"></p>
+    <div class="numeros" id="fim-numeros"></div>
+    <form method="dialog"><button class="principal">Fechar</button></form>
+  </dialog>
+
+  <dialog id="numeros" class="janela">
+    <h2>Seus números</h2>
+    <div class="numeros" id="numeros-corpo"></div>
+    <form method="dialog"><button class="principal">Fechar</button></form>
+  </dialog>
+
+  <dialog id="confirma" class="janela">
+    <p>Apagar todas as suas marcações de cor?</p>
+    <form method="dialog" class="duas">
+      <button value="nao">Cancelar</button>
+      <button value="sim" class="principal">Apagar marcas</button>
+    </form>
+  </dialog>
+
+  <script src="palavras.js"></script>
+  <script src="jogo.js"></script>
+  <script src="ui.js"></script>
+  <script>
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+      navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => {});
+    }
+  </script>
+</body>
+</html>

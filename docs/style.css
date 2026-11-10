@@ -1,0 +1,183 @@
+/* Sonia500 — azulejo: letras em ladrilhos esmaltados, azul cobalto. */
+:root {
+  --fundo: #E9EEF6;
+  --ladrilho: #FFFFFF;
+  --ladrilho-borda: #C9D4E6;
+  --ladrilho-filete: #DCE4F1;
+  --tinta: #183A7A;          /* azul cobalto das letras */
+  --texto: #1B2433;
+  --texto-suave: #4B5873;
+  --vazio: #D8E0EE;
+  --tecla: #FFFFFF;
+  --tecla-sombra: #B9C6DC;
+  --verde: #2E8B57;
+  --amarelo: #D9A20B;
+  --vermelho: #C4473E;
+  --sobre-cor: #FFFFFF;
+  --janela: #FFFFFF;
+  --cortina: rgba(14, 26, 48, .45);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="claro"]) {
+    --fundo: #0E1A30; --ladrilho: #1A2B4B; --ladrilho-borda: #2C4370; --ladrilho-filete: #233960;
+    --tinta: #F3F6FC; --texto: #F3F6FC; --texto-suave: #A9B7D3; --vazio: #22365B;
+    --tecla: #2A4170; --tecla-sombra: #0A1426; --verde: #3AA36B; --amarelo: #E3B22B; --vermelho: #D85A50;
+    --janela: #16264A; --cortina: rgba(0, 0, 0, .6); color-scheme: dark;
+  }
+}
+:root[data-tema="escuro"] {
+  --fundo: #0E1A30; --ladrilho: #1A2B4B; --ladrilho-borda: #2C4370; --ladrilho-filete: #233960;
+  --tinta: #F3F6FC; --texto: #F3F6FC; --texto-suave: #A9B7D3; --vazio: #22365B;
+  --tecla: #2A4170; --tecla-sombra: #0A1426; --verde: #3AA36B; --amarelo: #E3B22B; --vermelho: #D85A50;
+  --janela: #16264A; --cortina: rgba(0, 0, 0, .6); color-scheme: dark;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: ui-rounded, "SF Pro Rounded", -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+  display: flex; flex-direction: column;
+  height: 100dvh;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  overscroll-behavior: none; touch-action: manipulation;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--amarelo); outline-offset: 2px; }
+
+/* Topo */
+.topo { display: grid; grid-template-columns: 100px 1fr 100px; align-items: center; padding: 6px 10px 2px; }
+.topo h1 { margin: 0; text-align: center; font-size: 28px; font-weight: 800; letter-spacing: -.01em; color: var(--tinta); }
+.topo .lado { display: flex; justify-content: flex-end; }
+.icone { width: 48px; height: 48px; border: 0; background: none; display: grid; place-items: center; border-radius: 50%; }
+.icone svg { width: 30px; height: 30px; fill: none; stroke: var(--tinta); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.icone svg .cheio { fill: var(--tinta); stroke: none; }
+.icone .lua { display: none; }
+:root[data-tema="escuro"] .icone .sol { display: none; }
+:root[data-tema="escuro"] .icone .lua { display: block; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="claro"]) .icone .sol { display: none; }
+  :root:not([data-tema="claro"]) .icone .lua { display: block; }
+}
+
+/* Tabuleiro: o tamanho dos ladrilhos se ajusta ao espaço que sobra */
+.tabuleiro { flex: 1; min-height: 0; container-type: size; display: grid; place-items: center; padding: 4px 12px; }
+.grade {
+  --t: min(calc((100cqw - 8px) / 8.7), calc((100cqh - 4px) / 8.75), 62px);
+  display: grid; grid-template-rows: repeat(8, var(--t)); row-gap: calc(var(--t) * .12);
+}
+.linha { display: grid; grid-template-columns: repeat(5, var(--t)) calc(var(--t) * .35) repeat(3, var(--t)); column-gap: calc(var(--t) * .1); }
+.linha.treme { animation: treme .4s; }
+@keyframes treme { 20%, 60% { transform: translateX(-7px); } 40%, 80% { transform: translateX(7px); } }
+
+.letra {
+  width: var(--t); height: var(--t);
+  display: grid; place-items: center;
+  font-size: calc(var(--t) * .58); font-weight: 800; line-height: 1;
+  color: var(--tinta);
+  background: var(--ladrilho);
+  border-radius: calc(var(--t) * .14);
+  border: 2px solid var(--vazio);
+  position: relative; padding: 0;
+}
+/* filete interno, como a moldura pintada de um azulejo */
+.letra::after { content: ""; position: absolute; inset: calc(var(--t) * .08); border: 1.5px solid transparent; border-radius: calc(var(--t) * .08); pointer-events: none; }
+.letra.cheia { border-color: var(--ladrilho-borda); box-shadow: 0 2px 0 var(--ladrilho-borda); }
+.letra.cheia::after { border-color: var(--ladrilho-filete); }
+.letra.atual { border-color: var(--ladrilho-borda); }
+.letra.atual.cheia { border-color: var(--tinta); }
+.letra.cursor { border-color: var(--tinta); border-width: 3px; background: var(--ladrilho-filete); }
+.letra.nova { animation: entra .12s ease-out; }
+@keyframes entra { from { transform: scale(.85); } }
+.letra.vira { animation: vira .42s ease-in-out both; }
+@keyframes vira { 0% { transform: rotateX(0); } 50% { transform: rotateX(90deg); } 100% { transform: rotateX(0); } }
+
+/* Marcações dela */
+.letra.m-fora, .letra.m-existe, .letra.m-certa { color: var(--sobre-cor); box-shadow: none; }
+.letra.m-fora { background: var(--vermelho); border-color: var(--vermelho); }
+.letra.m-existe { background: var(--amarelo); border-color: var(--amarelo); }
+.letra.m-certa { background: var(--verde); border-color: var(--verde); }
+.letra.m-fora::after, .letra.m-existe::after, .letra.m-certa::after { border-color: rgba(255, 255, 255, .35); }
+
+/* Contagens: bolinhas, para não confundir com as letras */
+.conta { width: var(--t); height: var(--t); display: grid; place-items: center; }
+.conta span {
+  width: calc(var(--t) * .82); height: calc(var(--t) * .82); border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: calc(var(--t) * .5); font-weight: 800; color: var(--sobre-cor);
+}
+.conta.vazia span { background: none; border: 2px dashed var(--vazio); }
+.conta .verde { background: var(--verde); }
+.conta .amarela { background: var(--amarelo); }
+.conta .vermelha { background: var(--vermelho); }
+.conta .zero { opacity: .38; }
+.conta.aparece span { animation: aparece .3s ease-out both; }
+@keyframes aparece { from { transform: scale(0); } 70% { transform: scale(1.15); } }
+
+/* Ações entre o tabuleiro e o teclado */
+.acoes { display: flex; justify-content: center; gap: 12px; padding: 2px 12px 6px; }
+.acao { min-height: 40px; padding: 0 18px; border-radius: 20px; border: 2px solid var(--ladrilho-borda); background: var(--ladrilho); color: var(--tinta); font-size: 17px; font-weight: 700; }
+.acao:disabled { opacity: .4; }
+
+/* Aviso flutuante */
+.aviso {
+  position: fixed; left: 50%; top: calc(env(safe-area-inset-top) + 64px); transform: translate(-50%, -8px);
+  background: var(--texto); color: var(--fundo); font-size: 20px; font-weight: 700;
+  padding: 12px 20px; border-radius: 14px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+  max-width: calc(100vw - 32px); text-align: center; z-index: 5;
+}
+.aviso.mostra { opacity: 1; transform: translate(-50%, 0); }
+
+/* Teclado */
+.teclado { display: flex; flex-direction: column; gap: 8px; padding: 4px 4px 10px; }
+.fileira { display: flex; gap: 5px; justify-content: center; }
+.tecla {
+  flex: 1 1 0; max-width: 44px; height: 56px; border: 0; border-radius: 8px;
+  background: var(--tecla); color: var(--tinta); font-size: 23px; font-weight: 700;
+  box-shadow: 0 2px 0 var(--tecla-sombra); padding: 0; touch-action: manipulation;
+}
+.tecla:active, .tecla.aperta { transform: translateY(2px); box-shadow: none; }
+.tecla.larga { flex: 1.6 1 0; max-width: 72px; }
+.tecla.enviar { flex: 2.6 1 0; max-width: 128px; background: var(--tinta); color: var(--fundo); font-size: 19px; }
+.tecla svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.tecla.m-fora { background: var(--vermelho); color: var(--sobre-cor); box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+.tecla.m-existe { background: var(--amarelo); color: var(--sobre-cor); box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+.tecla.m-certa { background: var(--verde); color: var(--sobre-cor); box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+
+/* Janelas */
+.janela {
+  border: 0; border-radius: 22px; background: var(--janela); color: var(--texto);
+  width: min(420px, calc(100vw - 32px)); padding: 22px 22px 18px; font-size: 19px; line-height: 1.45;
+}
+.janela::backdrop { background: var(--cortina); }
+.janela h2 { margin: 0 0 8px; font-size: 26px; color: var(--tinta); }
+.janela p { margin: 0 0 12px; }
+.legenda { list-style: none; padding: 0; margin: 0 0 14px; display: grid; gap: 8px; }
+.legenda li { display: flex; align-items: center; gap: 12px; }
+.bola { width: 34px; height: 34px; flex: none; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 800; }
+.bola.verde { background: var(--verde); } .bola.amarela { background: var(--amarelo); } .bola.vermelha { background: var(--vermelho); }
+.janela .principal { width: 100%; min-height: 54px; border: 0; border-radius: 14px; background: var(--tinta); color: var(--fundo); font-size: 20px; font-weight: 800; margin-top: 6px; }
+.janela .duas { display: flex; gap: 10px; }
+.janela .duas button { flex: 1; min-height: 54px; border-radius: 14px; font-size: 18px; font-weight: 700; border: 2px solid var(--ladrilho-borda); background: none; }
+.janela .duas .principal { border: 0; margin: 0; }
+/* Números: placar e "acertou em quantas" */
+.numeros:empty { display: none; }
+.placar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; text-align: center; margin: 4px 0 12px; }
+.placar b { display: block; font-size: 32px; line-height: 1.1; color: var(--tinta); font-variant-numeric: tabular-nums; }
+.placar span { display: block; font-size: 14px; line-height: 1.2; color: var(--texto-suave); }
+.numeros h3 { margin: 0 0 8px; font-size: 19px; }
+.barras { display: grid; gap: 4px; margin-bottom: 8px; }
+.barra { display: grid; grid-template-columns: 2.6em 1fr; align-items: center; gap: 8px; font-size: 16px; font-variant-numeric: tabular-nums; }
+.barra i { display: block; min-width: 2em; padding: 0 8px; line-height: 24px; border-radius: 6px; background: var(--vazio); color: var(--texto); font-style: normal; font-weight: 700; text-align: right; }
+.barra.hoje i { background: var(--verde); color: var(--sobre-cor); }
+.barra.perdeu i { background: var(--vazio); }
+.barra.perdeu.hoje i { background: var(--vermelho); color: var(--sobre-cor); }
+.nota { font-size: 15px; color: var(--texto-suave); margin: 0 0 4px; }
+.revelada { font-size: 36px; font-weight: 800; letter-spacing: .12em; color: var(--tinta); text-align: center; margin: 4px 0 12px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .letra.vira, .letra.nova, .conta.aparece span, .linha.treme { animation: none; }
+}

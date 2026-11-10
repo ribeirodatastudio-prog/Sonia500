@@ -1,0 +1,16 @@
+{
+  "name": "Sonia500",
+  "short_name": "Sonia500",
+  "description": "Uma palavra nova por dia.",
+  "lang": "pt-BR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#E9EEF6",
+  "theme_color": "#183A7A",
+  "icons": [
+    { "src": "icones/icone-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icones/icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

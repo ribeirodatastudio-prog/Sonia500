@@ -1,0 +1,5 @@
+{
+  "name": "sonia500",
+  "private": true,
+  "scripts": { "test": "node --test tests/jogo.test.js" }
+}
