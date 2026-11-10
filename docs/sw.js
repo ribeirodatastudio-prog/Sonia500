@@ -1,6 +1,6 @@
 // Sonia500 — guarda o app no aparelho para funcionar sem internet.
 // Ao publicar uma versão nova, troque o número abaixo: o iPhone baixa tudo de novo na próxima abertura.
-const VERSAO = 'sonia500-v3';
+const VERSAO = 'sonia500-v4';
 const ARQUIVOS = [
   './', 'index.html', 'style.css', 'palavras.js', 'jogo.js', 'ui.js', 'manifest.json',
   'icones/apple-touch-icon.png', 'icones/icone-192.png', 'icones/icone-512.png',
