@@ -54,10 +54,21 @@ test('palavra do dia é estável e muda a cada dia', () => {
   assert.strictEqual(J.numeroDoDia(new Date(2026, 10, 1)), 0);
 });
 
-test('não repete palavra do dia antes de esgotar a lista', () => {
+test('duas palavras por dia, sem repetir antes de esgotar a lista', () => {
+  const dias = Math.floor(J.total / 2);
   const vistas = new Set();
-  for (let i = 0; i < J.total; i++) vistas.add(J.palavraDoDia(new Date(2026, 10, 1 + i)));
-  assert.strictEqual(vistas.size, J.total);
+  for (let i = 0; i < dias; i++) {
+    const d = new Date(2026, 10, 1 + i);
+    const a = J.palavraDoDia(d, 1), b = J.palavraDoDia(d, 2);
+    assert.notStrictEqual(a, b);
+    vistas.add(a); vistas.add(b);
+  }
+  assert.strictEqual(vistas.size, dias * 2);
+});
+
+test('palavra 1 continua igual à palavra do dia de antes', () => {
+  assert.strictEqual(J.palavraDoDia(new Date(2026, 10, 9)), 'SADIO');
+  assert.strictEqual(J.palavraDoDia(new Date(2026, 10, 9), 1), 'SADIO');
 });
 
 test('dica bate com as pistas, não repete palpite e nunca é a secreta', () => {

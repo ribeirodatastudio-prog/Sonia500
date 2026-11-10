@@ -64,6 +64,19 @@ button { font: inherit; color: inherit; cursor: pointer; }
   :root:not([data-tema="claro"]) .icone .lua { display: block; }
 }
 
+/* Escolha entre as duas palavras do dia */
+.seletor { display: flex; justify-content: center; gap: 8px; padding: 2px 16px 4px; }
+.seletor button {
+  min-height: 40px; padding: 0 16px; border-radius: 20px; border: 2px solid var(--ladrilho-borda);
+  background: none; color: var(--texto-suave); font-size: 17px; font-weight: 700;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.seletor button[aria-selected="true"] { background: var(--tinta); border-color: var(--tinta); color: var(--fundo); }
+.seletor span:empty { display: none; }
+.seletor span { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; color: var(--sobre-cor); }
+.seletor span.ganhou { background: var(--verde); }
+.seletor span.perdeu { background: var(--vermelho); }
+
 /* Tabuleiro: o tamanho dos ladrilhos se ajusta ao espaço que sobra */
 .tabuleiro { flex: 1; min-height: 0; container-type: size; display: grid; place-items: center; padding: 4px 12px; }
 .grade {
@@ -166,6 +179,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .bola.verde { background: var(--verde); } .bola.amarela { background: var(--amarelo); } .bola.vermelha { background: var(--vermelho); }
 .janela .principal { width: 100%; min-height: 54px; border: 0; border-radius: 14px; background: var(--tinta); color: var(--fundo); font-size: 20px; font-weight: 800; margin-top: 6px; }
 .janela .duas { display: flex; gap: 10px; }
+.janela .empilha { display: grid; gap: 8px; }
+.janela .empilha button:not(.principal) { min-height: 50px; border-radius: 14px; font-size: 18px; font-weight: 700; border: 2px solid var(--ladrilho-borda); background: none; }
+.janela .empilha button[hidden] { display: none; }
 .janela .duas button { flex: 1; min-height: 54px; border-radius: 14px; font-size: 18px; font-weight: 700; border: 2px solid var(--ladrilho-borda); background: none; }
 .janela .duas .principal { border: 0; margin: 0; }
 /* Números: placar e "acertou em quantas" */

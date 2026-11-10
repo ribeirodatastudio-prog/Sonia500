@@ -2,6 +2,7 @@
 (function (raiz) {
   const TAMANHO = 5;
   const MAX_TENTATIVAS = 8;
+  const POR_DIA = 2; // palavras do dia
   // Dia 0 da contagem. A palavra do dia muda à meia-noite no horário do aparelho.
   const INICIO = new Date(2026, 10, 1); // 1º de novembro de 2026
 
@@ -45,10 +46,13 @@
     return Math.round((d - INICIO) / 86400000);
   }
 
-  function palavraDoDia(data = new Date()) {
+  // Duas palavras por dia: a 1ª vem da primeira metade da lista embaralhada, a 2ª da segunda metade.
+  // Assim nenhuma se repete antes de ~450 dias, e a palavra 1 é a mesma que já existia antes.
+  function palavraDoDia(data = new Date(), qual = 1) {
+    const metade = Math.floor(ORDEM.length / POR_DIA);
     const n = numeroDoDia(data);
-    const i = ((n % ORDEM.length) + ORDEM.length) % ORDEM.length;
-    return ORDEM[i];
+    const i = ((n % metade) + metade) % metade;
+    return ORDEM[i + (qual - 1) * metade];
   }
 
   function palavraAleatoria(evitar = []) {
@@ -107,7 +111,7 @@
   }
 
   const Jogo = {
-    TAMANHO, MAX_TENTATIVAS, normalizar, pontuar, validar, dica,
+    TAMANHO, MAX_TENTATIVAS, POR_DIA, normalizar, pontuar, validar, dica,
     palavraDoDia, numeroDoDia, palavraAleatoria, total: SECRETAS.length,
   };
   if (typeof module !== 'undefined') module.exports = Jogo;

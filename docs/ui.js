@@ -4,12 +4,14 @@
   const N = J.TAMANHO, MAX = J.MAX_TENTATIVAS;
   const $ = (id) => document.getElementById(id);
   const CHAVE = 'sonia500:partida';
+  const chaveDa = (qual) => (qual === 1 ? CHAVE : CHAVE + qual); // a 1ª mantém o nome antigo
 
   // ---------- Estado ----------
-  function novaPartida() {
+  function novaPartida(qual) {
     return {
       dia: J.numeroDoDia(),
-      secreta: J.palavraDoDia(),
+      qual,                    // 1 ou 2: qual palavra do dia
+      secreta: J.palavraDoDia(new Date(), qual),
       palpites: [],            // [{ palavra, verdes, amarelas, vermelhas }]
       atual: Array(N).fill(''), // letras da linha que ela está escrevendo ('' = vazio)
       cursor: 0,               // onde a próxima letra vai (N = linha cheia)
@@ -18,40 +20,51 @@
       marcasPos: Array(N).fill(null), // letra marcada como certa em cada posição
     };
   }
-  function carregar() {
+  function carregar(qual) {
     try {
-      const s = JSON.parse(localStorage.getItem(CHAVE));
+      const s = JSON.parse(localStorage.getItem(chaveDa(qual)));
       if (s && s.dia === J.numeroDoDia()) {
+        s.qual = qual;
         if (typeof s.atual === 'string') { s.atual = Array.from({ length: N }, (_, i) => s.atual[i] || ''); s.cursor = s.atual.indexOf(''); if (s.cursor < 0) s.cursor = N; }
         return s;
       }
     } catch (e) {}
-    return novaPartida();
+    return novaPartida(qual);
   }
-  function salvar() { try { localStorage.setItem(CHAVE, JSON.stringify(E)); } catch (e) {} }
-  let E = carregar();
+  function salvar() { try { localStorage.setItem(chaveDa(E.qual), JSON.stringify(E)); } catch (e) {} }
+  // Abre a primeira palavra do dia que ela ainda não terminou
+  function primeiraAberta() {
+    for (let q = 1; q <= J.POR_DIA; q++) if (!carregar(q).fim) return q;
+    return J.POR_DIA;
+  }
+  let E = carregar(primeiraAberta());
 
   // ---------- Números (ficam guardados no aparelho) ----------
   const CHAVE_N = 'sonia500:numeros';
   function lerNumeros() {
     let n = null;
     try { n = JSON.parse(localStorage.getItem(CHAVE_N)); } catch (e) {}
-    return n || { jogos: 0, vitorias: 0, sequencia: 0, melhor: 0, ultimaVitoria: null, ultimoDia: null,
+    n = n || { jogos: 0, vitorias: 0, sequencia: 0, melhor: 0, ultimaVitoria: null, ultimoDia: null,
       emQuantas: Array(MAX + 1).fill(0), // índice 1..8 = acertou em tantas; 0 = não acertou
-      historico: [] };       // [{ dia, palavra, tentativas, ganhou }]
+      historico: [] };       // [{ dia, qual, palavra, tentativas, ganhou }]
+    if (!n.registradas) n.registradas = n.ultimoDia !== null ? [n.ultimoDia + '-1'] : []; // versão antiga: 1 por dia
+    return n;
   }
-  // Registra a partida do dia uma única vez
+  // Registra cada palavra do dia uma única vez
   function registrarResultado() {
     const n = lerNumeros();
-    if (n.ultimoDia === E.dia) return;
+    const id = E.dia + '-' + E.qual;
+    if (n.registradas.includes(id)) return;
     const ganhou = E.fim === 'ganhou', t = E.palpites.length;
     n.jogos++; n.ultimoDia = E.dia;
+    n.registradas = n.registradas.concat(id).slice(-10);
     if (ganhou) {
       n.vitorias++; n.emQuantas[t]++;
-      n.sequencia = n.ultimaVitoria === E.dia - 1 ? n.sequencia + 1 : 1;
+      // acertos seguidos: soma enquanto ela não errar nem ficar um dia inteiro sem jogar
+      n.sequencia = n.ultimaVitoria !== null && n.ultimaVitoria >= E.dia - 1 ? n.sequencia + 1 : 1;
       n.ultimaVitoria = E.dia; n.melhor = Math.max(n.melhor, n.sequencia);
     } else { n.emQuantas[0]++; n.sequencia = 0; }
-    n.historico.push({ dia: E.dia, palavra: J.validar(E.secreta).palavra, tentativas: t, ganhou });
+    n.historico.push({ dia: E.dia, qual: E.qual, palavra: J.validar(E.secreta).palavra, tentativas: t, ganhou });
     try { localStorage.setItem(CHAVE_N, JSON.stringify(n)); } catch (e) {}
   }
   // Sequência que vale hoje: se pulou um dia sem acertar, zera
@@ -59,10 +72,12 @@
     const hoje = J.numeroDoDia();
     return n.ultimaVitoria !== null && n.ultimaVitoria >= hoje - 1 ? n.sequencia : 0;
   }
-  function desenharNumeros(alvo) {
+  // completo = com as barras; na tela de fim mostra só o placar, para caber sem rolar
+  function desenharNumeros(alvo, completo = true) {
     const n = lerNumeros();
     const pct = n.jogos ? Math.round((100 * n.vitorias) / n.jogos) : 0;
-    const hoje = n.ultimoDia === J.numeroDoDia() ? n.historico[n.historico.length - 1] : null;
+    const ult = n.historico[n.historico.length - 1];
+    const hoje = ult && ult.dia === E.dia && (ult.qual || 1) === E.qual && E.fim ? ult : null;
     const maior = Math.max(1, ...n.emQuantas);
     const barra = (rotulo, qtd, ehHoje, perdeu) =>
       `<div class="barra${ehHoje ? ' hoje' : ''}${perdeu ? ' perdeu' : ''}"><span>${rotulo}</span><i style="width:${Math.max(8, (100 * qtd) / maior)}%">${qtd}</i></div>`;
@@ -73,12 +88,12 @@
       <div class="placar">
         <div><b>${n.jogos}</b><span>jogos</span></div>
         <div><b>${pct}%</b><span>acertos</span></div>
-        <div><b>${sequenciaAtual(n)}</b><span>dias seguidos</span></div>
+        <div><b>${sequenciaAtual(n)}</b><span>acertos seguidos</span></div>
         <div><b>${n.melhor}</b><span>melhor sequência</span></div>
       </div>
-      <h3>Acertou em quantas tentativas</h3>
-      <div class="barras">${linhas}</div>
-      ${n.jogos ? '' : '<p class="nota">Os números começam a contar quando você terminar a primeira palavra do dia.</p>'}`;
+      ${completo ? `<h3>Acertou em quantas tentativas</h3>
+      <div class="barras">${linhas}</div>` : ''}
+      ${n.jogos ? '' : '<p class="nota">Os números começam a contar quando você terminar a primeira palavra.</p>'}`;
   }
 
   // ---------- Marcações ----------
@@ -303,17 +318,54 @@
     clearTimeout(avisoTimer); avisoTimer = setTimeout(() => a.classList.remove('mostra'), ms);
   }
 
+  // A outra palavra de hoje que ainda falta jogar (ou null)
+  function outraAberta() {
+    for (let q = 1; q <= J.POR_DIA; q++) if (q !== E.qual && !carregar(q).fim) return q;
+    return null;
+  }
   function mostrarFim() {
     const ganhou = E.fim === 'ganhou';
     const n = E.palpites.length;
+    const outra = outraAberta();
     $('fim-titulo').textContent = ganhou ? 'Parabéns, Sonia!' : 'Não foi dessa vez';
     $('fim-palavra').textContent = J.validar(E.secreta).palavra;
-    $('fim-texto').textContent = ganhou
-      ? (n === 1 ? 'Acertou de primeira!' : `Você acertou em ${n} tentativas.`) + ' Amanhã tem palavra nova.'
-      : 'Amanhã tem palavra nova.';
-    desenharNumeros($('fim-numeros'));
+    const resultado = ganhou ? (n === 1 ? 'Acertou de primeira!' : `Você acertou em ${n} tentativas.`) : '';
+    const depois = outra ? `Ainda falta a palavra ${outra} de hoje.` : 'Amanhã tem duas palavras novas.';
+    $('fim-texto').textContent = (resultado + ' ' + depois).trim();
+    $('fim-outra').hidden = !outra;
+    if (outra) { $('fim-outra').textContent = `Jogar a palavra ${outra}`; $('fim-outra').dataset.qual = outra; }
+    $('fim-fechar').className = outra ? '' : 'principal';
+    desenharNumeros($('fim-numeros'), false);
     abrir($('fim'));
   }
+  $('fim').addEventListener('close', () => {
+    if ($('fim').returnValue === 'outra') trocar(+$('fim-outra').dataset.qual);
+    $('fim').returnValue = '';
+  });
+
+  // ---------- Duas palavras por dia ----------
+  const seletor = $('seletor');
+  function desenharSeletor() {
+    seletor.querySelectorAll('button').forEach((b) => {
+      const q = +b.dataset.qual;
+      const fim = q === E.qual ? E.fim : carregar(q).fim;
+      b.setAttribute('aria-selected', q === E.qual ? 'true' : 'false');
+      const s = b.querySelector('span');
+      s.className = fim || '';
+      s.textContent = fim === 'ganhou' ? '✓' : fim === 'perdeu' ? '✗' : '';
+      b.setAttribute('aria-label', `Palavra ${q}` + (fim === 'ganhou' ? ', acertou' : fim === 'perdeu' ? ', não acertou' : ''));
+    });
+  }
+  function trocar(qual) {
+    if (qual === E.qual) return;
+    salvar();
+    E = carregar(qual);
+    desenhar();
+  }
+  seletor.addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    b.blur(); trocar(+b.dataset.qual);
+  });
 
   // ---------- Botões ----------
   function atualizarBotoes() {
@@ -353,7 +405,7 @@
   function abrir(d) { d.showModal(); d.scrollTop = 0; if (document.activeElement) document.activeElement.blur(); }
 
   // ---------- Início ----------
-  function desenhar() { for (let r = 0; r < MAX; r++) desenharLinha(r); desenharTeclado(); atualizarBotoes(); }
+  function desenhar() { for (let r = 0; r < MAX; r++) desenharLinha(r); desenharTeclado(); atualizarBotoes(); desenharSeletor(); }
   montarGrade(); montarTeclado(); desenhar();
   try {
     if (!localStorage.getItem('sonia500:viu-ajuda')) { abrir($('ajuda')); localStorage.setItem('sonia500:viu-ajuda', '1'); }
@@ -361,6 +413,6 @@
   if (E.fim) { registrarResultado(); setTimeout(mostrarFim, 300); }
   // Virou o dia com o app aberto: começa a partida nova
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && E.dia !== J.numeroDoDia()) { E = novaPartida(); salvar(); desenhar(); }
+    if (document.visibilityState === 'visible' && E.dia !== J.numeroDoDia()) { E = carregar(primeiraAberta()); desenhar(); }
   });
 })();

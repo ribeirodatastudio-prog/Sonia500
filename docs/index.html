@@ -37,6 +37,11 @@
     </div>
   </header>
 
+  <div class="seletor" id="seletor" role="tablist" aria-label="Palavras de hoje">
+    <button role="tab" data-qual="1">Palavra 1<span></span></button>
+    <button role="tab" data-qual="2">Palavra 2<span></span></button>
+  </div>
+
   <main class="tabuleiro" id="tabuleiro">
     <div class="grade" id="grade" role="grid" aria-label="Seus palpites"></div>
   </main>
@@ -52,7 +57,7 @@
 
   <dialog id="ajuda" class="janela">
     <h2>Como jogar</h2>
-    <p>Descubra a palavra de 5 letras em até 8 tentativas.</p>
+    <p>Todo dia tem duas palavras de 5 letras. Você tem 8 tentativas para cada uma.</p>
     <p>As bolinhas mostram <strong>quantas</strong> letras você acertou, mas não quais:</p>
     <ul class="legenda">
       <li><span class="bola verde">1</span> no lugar certo</li>
@@ -70,7 +75,10 @@
     <p class="revelada" id="fim-palavra"></p>
     <p id="fim-texto"></p>
     <div class="numeros" id="fim-numeros"></div>
-    <form method="dialog"><button class="principal">Fechar</button></form>
+    <form method="dialog" class="empilha">
+      <button class="principal" value="outra" id="fim-outra"></button>
+      <button value="fechar" id="fim-fechar">Fechar</button>
+    </form>
   </dialog>
 
   <dialog id="numeros" class="janela">
