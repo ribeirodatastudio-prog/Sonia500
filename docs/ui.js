@@ -3,7 +3,27 @@
   const J = window.Jogo;
   const N = J.TAMANHO, MAX = J.MAX_TENTATIVAS;
   const $ = (id) => document.getElementById(id);
-  const CHAVE = 'sonia500:partida';
+  const C = window.CONFIG || {};
+  const P = C.prefixo || 'sonia500';
+  const T = Object.assign({
+    erros: {},
+    jaTentou: 'Você já tentou essa',
+    faltam: 'Faltam letras',
+    vazio: 'vazio', marcada: { fora: 'marcada vermelha', existe: 'marcada amarela', certa: 'marcada verde' },
+    linha: (p) => `${p.palavra}: ${p.verdes} no lugar certo, ${p.amarelas} em outro lugar, ${p.vermelhas} fora`,
+    apagar: 'Apagar', enviar: 'Enviar',
+    parabens: 'Parabéns, Sonia!', naoFoi: 'Não foi dessa vez',
+    dePrimeira: 'Acertou de primeira!', acertouEm: (n) => `Você acertou em ${n} tentativas.`,
+    falta: (q) => `Ainda falta a palavra ${q} de hoje.`, amanha: 'Amanhã tem duas palavras novas.',
+    jogar: (q) => `Jogar a palavra ${q}`,
+    palavra: (q) => `Palavra ${q}`, acertou: ', acertou', naoAcertou: ', não acertou',
+    jogos: 'jogos', acertos: 'acertos', seguidos: 'acertos seguidos', melhor: 'melhor sequência',
+    emQuantas: 'Acertou em quantas tentativas',
+    semNumeros: 'Os números começam a contar quando você terminar a primeira palavra.',
+    palpitePrimeiro: 'Faça um palpite primeiro', temTudo: 'Você já tem tudo para acertar!',
+    dicaPronta: 'Uma palavra que combina com as pistas', semMarcas: 'Nenhuma marca para apagar',
+  }, C.textos);
+  const CHAVE = P + ':partida';
   const chaveDa = (qual) => (qual === 1 ? CHAVE : CHAVE + qual); // a 1ª mantém o nome antigo
 
   // ---------- Estado ----------
@@ -40,7 +60,7 @@
   let E = carregar(primeiraAberta());
 
   // ---------- Números (ficam guardados no aparelho) ----------
-  const CHAVE_N = 'sonia500:numeros';
+  const CHAVE_N = P + ':numeros';
   function lerNumeros() {
     let n = null;
     try { n = JSON.parse(localStorage.getItem(CHAVE_N)); } catch (e) {}
@@ -86,14 +106,14 @@
     linhas += barra('✗', n.emQuantas[0], hoje && !hoje.ganhou, true);
     alvo.innerHTML = `
       <div class="placar">
-        <div><b>${n.jogos}</b><span>jogos</span></div>
-        <div><b>${pct}%</b><span>acertos</span></div>
-        <div><b>${sequenciaAtual(n)}</b><span>acertos seguidos</span></div>
-        <div><b>${n.melhor}</b><span>melhor sequência</span></div>
+        <div><b>${n.jogos}</b><span>${T.jogos}</span></div>
+        <div><b>${pct}%</b><span>${T.acertos}</span></div>
+        <div><b>${sequenciaAtual(n)}</b><span>${T.seguidos}</span></div>
+        <div><b>${n.melhor}</b><span>${T.melhor}</span></div>
       </div>
-      ${completo ? `<h3>Acertou em quantas tentativas</h3>
+      ${completo ? `<h3>${T.emQuantas}</h3>
       <div class="barras">${linhas}</div>` : ''}
-      ${n.jogos ? '' : '<p class="nota">Os números começam a contar quando você terminar a primeira palavra.</p>'}`;
+      ${n.jogos ? '' : `<p class="nota">${T.semNumeros}</p>`}`;
   }
 
   // ---------- Marcações ----------
@@ -171,7 +191,7 @@
       const m = marcaDoLadrilho(l, c);
       if (m) b.classList.add('m-' + m);
       b.tabIndex = (p && l) || ehAtual ? 0 : -1;
-      b.setAttribute('aria-label', l ? `${l}${m ? ', marcada ' + ({ fora: 'vermelha', existe: 'amarela', certa: 'verde' })[m] : ''}` : 'vazio');
+      b.setAttribute('aria-label', l ? `${l}${m ? ', ' + T.marcada[m] : ''}` : T.vazio);
       if (animar) { b.classList.add('vira'); b.style.animationDelay = c * 110 + 'ms'; }
       else b.style.animationDelay = '';
     });
@@ -185,11 +205,11 @@
       if (p && animar) { d.classList.add('aparece'); s.style.animationDelay = N * 110 + 200 + i * 90 + 'ms'; }
       else s.style.animationDelay = '';
     });
-    if (p) linha.setAttribute('aria-label', `${p.palavra}: ${p.verdes} no lugar certo, ${p.amarelas} em outro lugar, ${p.vermelhas} fora`);
+    if (p) linha.setAttribute('aria-label', T.linha(p));
   }
 
   // ---------- Teclado ----------
-  const FILEIRAS = ['QWERTYUIOP', 'ASDFGHJKL⌫', 'ZXCVBNM↵'];
+  const FILEIRAS = C.teclado || ['QWERTYUIOP', 'ASDFGHJKL⌫', 'ZXCVBNM↵'];
   const teclado = $('teclado');
   function montarTeclado() {
     teclado.innerHTML = '';
@@ -198,10 +218,10 @@
       for (const k of f) {
         const b = document.createElement('button'); b.className = 'tecla';
         if (k === '⌫') {
-          b.classList.add('larga'); b.dataset.acao = 'apagar'; b.setAttribute('aria-label', 'Apagar');
+          b.classList.add('larga'); b.dataset.acao = 'apagar'; b.setAttribute('aria-label', T.apagar);
           b.innerHTML = '<svg viewBox="0 0 24 24"><path d="M21 5H9l-6 7 6 7h12z"/><path d="M12 9.5l5 5M17 9.5l-5 5"/></svg>';
         } else if (k === '↵') {
-          b.classList.add('enviar'); b.dataset.acao = 'enviar'; b.textContent = 'Enviar';
+          b.classList.add('enviar'); b.dataset.acao = 'enviar'; b.textContent = T.enviar;
         } else { b.dataset.letra = k; b.textContent = k; }
         fil.appendChild(b);
       }
@@ -241,7 +261,7 @@
     else if (e.key === 'Backspace') apagar();
     else if (e.key === 'ArrowLeft') moverCursor(Math.max(0, Math.min(E.cursor, N) - 1));
     else if (e.key === 'ArrowRight') moverCursor(Math.min(N - 1, E.cursor + 1));
-    else if (/^[a-zA-ZçÇ]$/.test(e.key)) digitar(J.normalizar(e.key));
+    else if (/^[a-zA-ZçÇñÑ]$/.test(e.key)) digitar(J.normalizar(e.key));
   });
 
   grade.addEventListener('click', (e) => {
@@ -286,10 +306,10 @@
   }
   function enviar() {
     if (E.fim) return;
-    if (E.atual.some((l) => !l)) return erro('Faltam letras');
+    if (E.atual.some((l) => !l)) return erro(T.faltam);
     const v = J.validar(E.atual.join(''));
-    if (!v.ok) return erro(v.erro);
-    if (E.palpites.some((p) => J.normalizar(p.palavra) === J.normalizar(v.palavra))) return erro('Você já tentou essa');
+    if (!v.ok) return erro(T.erros[v.erro] || v.erro);
+    if (E.palpites.some((p) => J.normalizar(p.palavra) === J.normalizar(v.palavra))) return erro(T.jaTentou);
     const r = J.pontuar(v.palavra, E.secreta);
     const p = { palavra: v.palavra, ...r };
     E.palpites.push(p); E.atual = Array(N).fill(''); E.cursor = 0;
@@ -327,13 +347,13 @@
     const ganhou = E.fim === 'ganhou';
     const n = E.palpites.length;
     const outra = outraAberta();
-    $('fim-titulo').textContent = ganhou ? 'Parabéns, Sonia!' : 'Não foi dessa vez';
+    $('fim-titulo').textContent = ganhou ? T.parabens : T.naoFoi;
     $('fim-palavra').textContent = J.validar(E.secreta).palavra;
-    const resultado = ganhou ? (n === 1 ? 'Acertou de primeira!' : `Você acertou em ${n} tentativas.`) : '';
-    const depois = outra ? `Ainda falta a palavra ${outra} de hoje.` : 'Amanhã tem duas palavras novas.';
+    const resultado = ganhou ? (n === 1 ? T.dePrimeira : T.acertouEm(n)) : '';
+    const depois = outra ? T.falta(outra) : T.amanha;
     $('fim-texto').textContent = (resultado + ' ' + depois).trim();
     $('fim-outra').hidden = !outra;
-    if (outra) { $('fim-outra').textContent = `Jogar a palavra ${outra}`; $('fim-outra').dataset.qual = outra; }
+    if (outra) { $('fim-outra').textContent = T.jogar(outra); $('fim-outra').dataset.qual = outra; }
     $('fim-fechar').className = outra ? '' : 'principal';
     desenharNumeros($('fim-numeros'), false);
     abrir($('fim'));
@@ -353,7 +373,7 @@
       const s = b.querySelector('span');
       s.className = fim || '';
       s.textContent = fim === 'ganhou' ? '✓' : fim === 'perdeu' ? '✗' : '';
-      b.setAttribute('aria-label', `Palavra ${q}` + (fim === 'ganhou' ? ', acertou' : fim === 'perdeu' ? ', não acertou' : ''));
+      b.setAttribute('aria-label', T.palavra(q) + (fim === 'ganhou' ? T.acertou : fim === 'perdeu' ? T.naoAcertou : ''));
     });
   }
   function trocar(qual) {
@@ -372,15 +392,15 @@
     $('btn-dica').disabled = !!E.fim || E.palpites.length === 0;
   }
   $('btn-dica').addEventListener('click', () => {
-    if (!E.palpites.length) return aviso('Faça um palpite primeiro');
+    if (!E.palpites.length) return aviso(T.palpitePrimeiro);
     const d = J.dica(E.palpites.map((p) => ({ palpite: p.palavra, verdes: p.verdes, amarelas: p.amarelas })), E.secreta);
-    if (!d) return aviso('Você já tem tudo para acertar!', 2600);
+    if (!d) return aviso(T.temTudo, 2600);
     E.atual = J.normalizar(d).split(''); E.cursor = N; salvar();
     desenharLinha(E.palpites.length);
-    aviso('Uma palavra que combina com as pistas', 2400);
+    aviso(T.dicaPronta, 2400);
   });
   $('btn-limpar').addEventListener('click', () => {
-    if (!Object.keys(E.marcasLetra).length && !E.marcasPos.some(Boolean)) return aviso('Nenhuma marca para apagar');
+    if (!Object.keys(E.marcasLetra).length && !E.marcasPos.some(Boolean)) return aviso(T.semMarcas);
     $('confirma').returnValue = ''; abrir($('confirma'));
   });
   $('confirma').addEventListener('close', () => {
@@ -396,7 +416,7 @@
     const agora = raiz.dataset.tema || (matchMedia('(prefers-color-scheme: dark)').matches ? 'escuro' : 'claro');
     const novo = agora === 'escuro' ? 'claro' : 'escuro';
     raiz.dataset.tema = novo;
-    try { localStorage.setItem('sonia500:tema', novo); } catch (e) {}
+    try { localStorage.setItem(P + ':tema', novo); } catch (e) {}
   });
   // Fechar janela tocando fora
   document.querySelectorAll('dialog').forEach((d) => d.addEventListener('click', (e) => { if (e.target === d) d.close(); }));
@@ -408,7 +428,7 @@
   function desenhar() { for (let r = 0; r < MAX; r++) desenharLinha(r); desenharTeclado(); atualizarBotoes(); desenharSeletor(); }
   montarGrade(); montarTeclado(); desenhar();
   try {
-    if (!localStorage.getItem('sonia500:viu-ajuda')) { abrir($('ajuda')); localStorage.setItem('sonia500:viu-ajuda', '1'); }
+    if (!localStorage.getItem(P + ':viu-ajuda')) { abrir($('ajuda')); localStorage.setItem(P + ':viu-ajuda', '1'); }
   } catch (e) {}
   if (E.fim) { registrarResultado(); setTimeout(mostrarFim, 300); }
   // Virou o dia com o app aberto: começa a partida nova

@@ -12,7 +12,9 @@
 
   // Remove acentos, troca Ç por C, deixa maiúsculo.
   function normalizar(p) {
-    return p.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+    // Tira acentos (Ç vira C), mas mantém Ñ, que no espanhol é outra letra
+    return p.trim().toUpperCase().replace(/Ñ/g, '\u0001').normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '').replace(/\u0001/g, 'Ñ');
   }
 
   // Dicionário de palpites aceitos: chave sem acento -> grafia acentuada

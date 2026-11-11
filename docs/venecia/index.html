@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>Venecia500</title>
+  <meta name="theme-color" content="#E9EEF6" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0E1A30" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Venecia500">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icones/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="icones/icone-192.png">
+  <link rel="stylesheet" href="../style.css">
+  <script>
+    // Aplica o tema antes de desenhar, para não piscar
+    try { const t = localStorage.getItem('venecia500:tema'); if (t === 'claro' || t === 'escuro') document.documentElement.dataset.tema = t; } catch (e) {}
+  </script>
+</head>
+<body>
+  <header class="topo">
+    <button class="icone" id="btn-ajuda" aria-label="Cómo jugar">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.2 9.2a2.9 2.9 0 1 1 4.1 2.6c-.8.4-1.3 1-1.3 1.9v.4"/><circle cx="12" cy="17.3" r=".6" class="cheio"/></svg>
+    </button>
+    <h1>Venecia500</h1>
+    <div class="lado">
+    <button class="icone" id="btn-numeros" aria-label="Tus números">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V12M12 20V5M19 20v-5"/></svg>
+    </button>
+    <button class="icone" id="btn-tema" aria-label="Cambiar tema claro u oscuro">
+      <svg viewBox="0 0 24 24" aria-hidden="true" class="sol"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true" class="lua"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+    </button>
+    </div>
+  </header>
+
+  <div class="seletor" id="seletor" role="tablist" aria-label="Palabras de hoy">
+    <button role="tab" data-qual="1">Palabra 1<span></span></button>
+    <button role="tab" data-qual="2">Palabra 2<span></span></button>
+  </div>
+
+  <main class="tabuleiro" id="tabuleiro">
+    <div class="grade" id="grade" role="grid" aria-label="Tus intentos"></div>
+  </main>
+
+  <div class="acoes">
+    <button class="acao" id="btn-dica">Pista</button>
+    <button class="acao" id="btn-limpar">Borrar marcas</button>
+  </div>
+
+  <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+
+  <nav class="teclado" id="teclado" aria-label="Teclado"></nav>
+
+  <dialog id="ajuda" class="janela">
+    <h2>Cómo jugar</h2>
+    <p>Cada día hay dos palabras de 5 letras. Tienes 8 intentos para cada una.</p>
+    <p>Los círculos muestran <strong>cuántas</strong> letras acertaste, pero no cuáles:</p>
+    <ul class="legenda">
+      <li><span class="bola verde">1</span> en su lugar</li>
+      <li><span class="bola amarela">2</span> en otro lugar</li>
+      <li><span class="bola vermelha">2</span> no están en la palabra</li>
+    </ul>
+    <p>Toca un cuadro de la fila que estás escribiendo para elegir dónde va la letra. Así puedes empezar por el final.</p>
+    <p>Toca una letra de un intento ya enviado para anotar: rojo, amarillo, verde, sin color. En el teclado, mantén presionada la letra.</p>
+    <p>La palabra correcta nunca repite letras, así que intenta usar 5 letras distintas.</p>
+    <p>Las tildes no cuentan, pero la Ñ es una letra aparte.</p>
+    <form method="dialog"><button class="principal">Entendido</button></form>
+  </dialog>
+
+  <dialog id="fim" class="janela">
+    <h2 id="fim-titulo"></h2>
+    <p class="revelada" id="fim-palavra"></p>
+    <p id="fim-texto"></p>
+    <div class="numeros" id="fim-numeros"></div>
+    <form method="dialog" class="empilha">
+      <button class="principal" value="outra" id="fim-outra"></button>
+      <button value="fechar" id="fim-fechar">Cerrar</button>
+    </form>
+  </dialog>
+
+  <dialog id="numeros" class="janela">
+    <h2>Tus números</h2>
+    <div class="numeros" id="numeros-corpo"></div>
+    <form method="dialog"><button class="principal">Cerrar</button></form>
+  </dialog>
+
+  <dialog id="confirma" class="janela">
+    <p>¿Borrar todas tus marcas de color?</p>
+    <form method="dialog" class="duas">
+      <button value="nao">Cancelar</button>
+      <button value="sim" class="principal">Borrar marcas</button>
+    </form>
+  </dialog>
+
+  <script src="config.js"></script>
+  <script src="palavras.js"></script>
+  <script src="../jogo.js"></script>
+  <script src="../ui.js"></script>
+  <script>
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+      navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => {});
+    }
+  </script>
+</body>
+</html>

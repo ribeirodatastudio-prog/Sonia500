@@ -18,6 +18,14 @@ Jogo de palavras no estilo Word500/Palavra500, feito para a Sonia jogar no iPhon
 2. Em `docs/sw.js`, troque `sonia500-v1` por `sonia500-v2` (e assim por diante). Sem isso, o iPhone continua usando a versão guardada.
 3. Envie para o GitHub. O app atualiza na próxima vez que ela abrir com internet.
 
+## Venecia500 (espanhol)
+
+Mesmo jogo em espanhol, em `docs/venecia/` (endereço: `/Sonia500/venecia/`). Usa o mesmo `jogo.js`, `ui.js` e `style.css`; o que muda fica em `docs/venecia/config.js` (textos, teclado com Ñ, nome) e `docs/venecia/palavras.js`.
+
+- Ao mudar arquivos compartilhados (`jogo.js`, `ui.js`, `style.css`), troque a versão nos **dois** `sw.js`.
+- Palavras: frequência de uso do OpenSubtitles (`hermitdave/FrequencyWords`) + dicionário `an-array-of-spanish-words` (MIT). Comandos no topo de `tools/es/build_palabras.py`; bloqueios em `tools/es/bloqueadas_es.txt`.
+- No espanhol o Ñ é uma letra própria; os acentos não contam.
+
 ## Palavras
 
 Fonte: lista pública `fserb/pt-br` (a mesma liberada pelo criador do Termo). Para mudar as palavras do dia, edite `tools/bloqueadas.txt` e rode os comandos no topo de `tools/build_palavras.py`.

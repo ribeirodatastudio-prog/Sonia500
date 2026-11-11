@@ -96,3 +96,23 @@ test('dica não é sempre a mesma palavra', () => {
 test('sem palpites não há dica', () => {
   assert.strictEqual(J.dica([], 'LISTA'), null);
 });
+
+test('Ñ continua sendo letra própria; Ç e acentos não', () => {
+  assert.strictEqual(J.normalizar('niño'), 'NIÑO');
+  assert.strictEqual(J.normalizar('Maçã'), 'MACA');
+  assert.strictEqual(J.normalizar('árbol'), 'ARBOL');
+  assert.deepStrictEqual(J.pontuar('NIÑOS', 'NINOS'), { verdes: 4, amarelas: 0, vermelhas: 1 });
+});
+
+test('Venecia500: secretas em espanhol válidas', () => {
+  const ES = require('../docs/venecia/palavras.js');
+  const aceitas = new Set(ES.ACEITAS.split(' ').map((x) => x.split(':')[0]));
+  assert.ok(ES.SECRETAS.length >= 600);
+  for (const s of ES.SECRETAS) {
+    const n = J.normalizar(s);
+    assert.strictEqual(n.length, 5, s);
+    assert.strictEqual(new Set(n).size, 5, s);
+    assert.ok(aceitas.has(n), s);
+  }
+  assert.strictEqual(new Set(ES.SECRETAS.map(J.normalizar)).size, ES.SECRETAS.length);
+});
