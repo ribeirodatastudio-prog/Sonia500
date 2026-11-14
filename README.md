@@ -25,6 +25,7 @@ Mesmo jogo em espanhol, em `docs/venecia/` (endereço: `/Sonia500/venecia/`). Us
 - Ao mudar arquivos compartilhados (`jogo.js`, `ui.js`, `style.css`), troque a versão nos **dois** `sw.js`.
 - Palavras: frequência de uso do OpenSubtitles (`hermitdave/FrequencyWords`) + dicionário `an-array-of-spanish-words` (MIT). Comandos no topo de `tools/es/build_palabras.py`; bloqueios em `tools/es/bloqueadas_es.txt`.
 - No espanhol o Ñ é uma letra própria; os acentos não contam.
+- Modo infinito (`infinito: true` no `config.js`): uma palavra atrás da outra, sem limite por dia. Uma volta inteira passa por todas as palavras sem repetir; a volta seguinte vem embaralhada de outro jeito.
 
 ## Palavras
 

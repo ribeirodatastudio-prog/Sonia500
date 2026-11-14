@@ -73,6 +73,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 }
 .seletor button[aria-selected="true"] { background: var(--tinta); border-color: var(--tinta); color: var(--fundo); }
 .seletor span:empty { display: none; }
+.seletor .contador { min-height: 40px; padding: 0 18px; border-radius: 20px; background: var(--tinta); color: var(--fundo); font-size: 17px; font-weight: 700; display: inline-flex; align-items: center; width: auto; height: auto; }
 .seletor span { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; color: var(--sobre-cor); }
 .seletor span.ganhou { background: var(--verde); }
 .seletor span.perdeu { background: var(--vermelho); }
@@ -139,6 +140,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .acoes { display: flex; justify-content: center; gap: 12px; padding: 2px 12px 6px; }
 .acao { min-height: 40px; padding: 0 18px; border-radius: 20px; border: 2px solid var(--ladrilho-borda); background: var(--ladrilho); color: var(--tinta); font-size: 17px; font-weight: 700; }
 .acao:disabled { opacity: .4; }
+.acao.destaque { background: var(--tinta); border-color: var(--tinta); color: var(--fundo); }
 
 /* Aviso flutuante */
 .aviso {

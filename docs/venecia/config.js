@@ -1,6 +1,7 @@
 // Venecia500 — mesmo jogo da Sonia500, em espanhol.
 window.CONFIG = {
   prefixo: 'venecia500',
+  infinito: true, // quantas palavras quiser, sem repetir até acabar a lista
   teclado: ['QWERTYUIOP', 'ASDFGHJKLÑ', 'ZXCVBNM⌫↵'],
   textos: {
     erros: { 'Faltam letras': 'Faltan letras', 'Letras demais': 'Sobran letras', 'Palavra não encontrada': 'No está en la lista' },
@@ -19,5 +20,6 @@ window.CONFIG = {
     semNumeros: 'Los números empiezan a contar cuando termines la primera palabra.',
     palpitePrimeiro: 'Primero haz un intento', temTudo: '¡Ya tienes todo para adivinarla!',
     dicaPronta: 'Una palabra que encaja con las pistas', semMarcas: 'No hay marcas para borrar',
+    proxima: 'Siguiente palabra',
   },
 };

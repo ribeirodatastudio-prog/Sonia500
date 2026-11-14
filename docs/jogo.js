@@ -33,15 +33,25 @@
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
   }
-  const ORDEM = (() => {
+  function embaralhar(semente) {
     const lista = SECRETAS.slice();
-    const rnd = mulberry32(500500);
+    const rnd = mulberry32(semente);
     for (let i = lista.length - 1; i > 0; i--) {
       const j = Math.floor(rnd() * (i + 1));
       [lista[i], lista[j]] = [lista[j], lista[i]];
     }
     return lista;
-  })();
+  }
+  const ORDEM = embaralhar(500500);
+
+  // Modo infinito: a palavra nº n de uma fila sem fim. Cada volta completa usa toda a lista
+  // uma vez, sem repetir; a volta seguinte é embaralhada de outro jeito.
+  let voltaCache = { volta: 0, ordem: ORDEM };
+  function palavraDaSequencia(n) {
+    const volta = Math.floor(n / ORDEM.length);
+    if (voltaCache.volta !== volta) voltaCache = { volta, ordem: volta === 0 ? ORDEM : embaralhar(500500 + volta * 7919) };
+    return voltaCache.ordem[n % ORDEM.length];
+  }
 
   function numeroDoDia(data = new Date()) {
     const d = new Date(data.getFullYear(), data.getMonth(), data.getDate());
@@ -114,7 +124,7 @@
 
   const Jogo = {
     TAMANHO, MAX_TENTATIVAS, POR_DIA, normalizar, pontuar, validar, dica,
-    palavraDoDia, numeroDoDia, palavraAleatoria, total: SECRETAS.length,
+    palavraDoDia, numeroDoDia, palavraDaSequencia, palavraAleatoria, total: SECRETAS.length,
   };
   if (typeof module !== 'undefined') module.exports = Jogo;
   else raiz.Jogo = Jogo;

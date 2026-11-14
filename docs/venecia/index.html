@@ -37,10 +37,7 @@
     </div>
   </header>
 
-  <div class="seletor" id="seletor" role="tablist" aria-label="Palabras de hoy">
-    <button role="tab" data-qual="1">Palabra 1<span></span></button>
-    <button role="tab" data-qual="2">Palabra 2<span></span></button>
-  </div>
+  <div class="seletor" id="seletor" aria-live="polite"></div>
 
   <main class="tabuleiro" id="tabuleiro">
     <div class="grade" id="grade" role="grid" aria-label="Tus intentos"></div>
@@ -57,7 +54,7 @@
 
   <dialog id="ajuda" class="janela">
     <h2>Cómo jugar</h2>
-    <p>Cada día hay dos palabras de 5 letras. Tienes 8 intentos para cada una.</p>
+    <p>Juega todas las palabras de 5 letras que quieras, una tras otra. Ninguna se repite hasta que termines la lista. Tienes 8 intentos para cada una.</p>
     <p>Los círculos muestran <strong>cuántas</strong> letras acertaste, pero no cuáles:</p>
     <ul class="legenda">
       <li><span class="bola verde">1</span> en su lugar</li>

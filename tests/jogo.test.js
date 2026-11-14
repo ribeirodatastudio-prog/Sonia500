@@ -66,6 +66,14 @@ test('duas palavras por dia, sem repetir antes de esgotar a lista', () => {
   assert.strictEqual(vistas.size, dias * 2);
 });
 
+test('modo infinito: uma volta inteira sem repetir, e a próxima volta também', () => {
+  const v1 = new Set(), v2 = new Set();
+  for (let i = 0; i < J.total; i++) { v1.add(J.palavraDaSequencia(i)); v2.add(J.palavraDaSequencia(J.total + i)); }
+  assert.strictEqual(v1.size, J.total);
+  assert.strictEqual(v2.size, J.total);
+  assert.notStrictEqual(J.palavraDaSequencia(0), J.palavraDaSequencia(J.total));
+});
+
 test('palavra 1 continua igual à palavra do dia de antes', () => {
   assert.strictEqual(J.palavraDoDia(new Date(2026, 10, 9)), 'SADIO');
   assert.strictEqual(J.palavraDoDia(new Date(2026, 10, 9), 1), 'SADIO');

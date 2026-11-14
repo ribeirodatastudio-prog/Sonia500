@@ -5,6 +5,7 @@
   const $ = (id) => document.getElementById(id);
   const C = window.CONFIG || {};
   const P = C.prefixo || 'sonia500';
+  const INF = !!C.infinito; // modo infinito: uma palavra atrás da outra, sem limite por dia
   const T = Object.assign({
     erros: {},
     jaTentou: 'Você já tentou essa',
@@ -22,16 +23,28 @@
     semNumeros: 'Os números começam a contar quando você terminar a primeira palavra.',
     palpitePrimeiro: 'Faça um palpite primeiro', temTudo: 'Você já tem tudo para acertar!',
     dicaPronta: 'Uma palavra que combina com as pistas', semMarcas: 'Nenhuma marca para apagar',
+    proxima: 'Próxima palavra',
   }, C.textos);
   const CHAVE = P + ':partida';
   const chaveDa = (qual) => (qual === 1 ? CHAVE : CHAVE + qual); // a 1ª mantém o nome antigo
 
   // ---------- Estado ----------
-  function novaPartida(qual) {
+  // Infinito: próximo número da fila, pulando palavras que ela jogou há pouco
+  // (assim as que ela já jogou no modo de duas por dia não voltam logo)
+  function proximoNumero(de) {
+    const n = lerNumeros();
+    const recentes = new Set(n.historico.slice(-(J.total - 1)).map((h) => J.normalizar(h.palavra)));
+    let i = de;
+    while (recentes.has(J.normalizar(J.palavraDaSequencia(i))) && i < de + J.total) i++;
+    return i;
+  }
+  function novaPartida(qual, numero) {
+    if (INF && numero === undefined) numero = proximoNumero(0);
     return {
       dia: J.numeroDoDia(),
       qual,                    // 1 ou 2: qual palavra do dia
-      secreta: J.palavraDoDia(new Date(), qual),
+      numero,                  // só no modo infinito: posição na fila
+      secreta: INF ? J.palavraDaSequencia(numero) : J.palavraDoDia(new Date(), qual),
       palpites: [],            // [{ palavra, verdes, amarelas, vermelhas }]
       atual: Array(N).fill(''), // letras da linha que ela está escrevendo ('' = vazio)
       cursor: 0,               // onde a próxima letra vai (N = linha cheia)
@@ -43,7 +56,7 @@
   function carregar(qual) {
     try {
       const s = JSON.parse(localStorage.getItem(chaveDa(qual)));
-      if (s && s.dia === J.numeroDoDia()) {
+      if (s && (INF ? typeof s.numero === 'number' : s.dia === J.numeroDoDia())) {
         s.qual = qual;
         if (typeof s.atual === 'string') { s.atual = Array.from({ length: N }, (_, i) => s.atual[i] || ''); s.cursor = s.atual.indexOf(''); if (s.cursor < 0) s.cursor = N; }
         return s;
@@ -54,11 +67,10 @@
   function salvar() { try { localStorage.setItem(chaveDa(E.qual), JSON.stringify(E)); } catch (e) {} }
   // Abre a primeira palavra do dia que ela ainda não terminou
   function primeiraAberta() {
+    if (INF) return 1;
     for (let q = 1; q <= J.POR_DIA; q++) if (!carregar(q).fim) return q;
     return J.POR_DIA;
   }
-  let E = carregar(primeiraAberta());
-
   // ---------- Números (ficam guardados no aparelho) ----------
   const CHAVE_N = P + ':numeros';
   function lerNumeros() {
@@ -73,7 +85,7 @@
   // Registra cada palavra do dia uma única vez
   function registrarResultado() {
     const n = lerNumeros();
-    const id = E.dia + '-' + E.qual;
+    const id = INF ? 'n' + E.numero : E.dia + '-' + E.qual;
     if (n.registradas.includes(id)) return;
     const ganhou = E.fim === 'ganhou', t = E.palpites.length;
     n.jogos++; n.ultimoDia = E.dia;
@@ -81,14 +93,17 @@
     if (ganhou) {
       n.vitorias++; n.emQuantas[t]++;
       // acertos seguidos: soma enquanto ela não errar nem ficar um dia inteiro sem jogar
-      n.sequencia = n.ultimaVitoria !== null && n.ultimaVitoria >= E.dia - 1 ? n.sequencia + 1 : 1;
+      n.sequencia = INF || (n.ultimaVitoria !== null && n.ultimaVitoria >= E.dia - 1) ? n.sequencia + 1 : 1;
       n.ultimaVitoria = E.dia; n.melhor = Math.max(n.melhor, n.sequencia);
     } else { n.emQuantas[0]++; n.sequencia = 0; }
-    n.historico.push({ dia: E.dia, qual: E.qual, palavra: J.validar(E.secreta).palavra, tentativas: t, ganhou });
+    n.historico.push({ dia: E.dia, qual: E.qual, numero: E.numero, palavra: J.validar(E.secreta).palavra, tentativas: t, ganhou });
     try { localStorage.setItem(CHAVE_N, JSON.stringify(n)); } catch (e) {}
   }
+  let E = carregar(primeiraAberta());
+  if (INF) salvar(); // guarda já o número da fila (e substitui partidas do modo antigo)
   // Sequência que vale hoje: se pulou um dia sem acertar, zera
   function sequenciaAtual(n) {
+    if (INF) return n.sequencia;
     const hoje = J.numeroDoDia();
     return n.ultimaVitoria !== null && n.ultimaVitoria >= hoje - 1 ? n.sequencia : 0;
   }
@@ -97,7 +112,7 @@
     const n = lerNumeros();
     const pct = n.jogos ? Math.round((100 * n.vitorias) / n.jogos) : 0;
     const ult = n.historico[n.historico.length - 1];
-    const hoje = ult && ult.dia === E.dia && (ult.qual || 1) === E.qual && E.fim ? ult : null;
+    const hoje = ult && E.fim && (INF ? ult.numero === E.numero : ult.dia === E.dia && (ult.qual || 1) === E.qual) ? ult : null;
     const maior = Math.max(1, ...n.emQuantas);
     const barra = (rotulo, qtd, ehHoje, perdeu) =>
       `<div class="barra${ehHoje ? ' hoje' : ''}${perdeu ? ' perdeu' : ''}"><span>${rotulo}</span><i style="width:${Math.max(8, (100 * qtd) / maior)}%">${qtd}</i></div>`;
@@ -346,26 +361,31 @@
   function mostrarFim() {
     const ganhou = E.fim === 'ganhou';
     const n = E.palpites.length;
-    const outra = outraAberta();
+    const outra = INF ? 'prox' : outraAberta();
     $('fim-titulo').textContent = ganhou ? T.parabens : T.naoFoi;
     $('fim-palavra').textContent = J.validar(E.secreta).palavra;
     const resultado = ganhou ? (n === 1 ? T.dePrimeira : T.acertouEm(n)) : '';
-    const depois = outra ? T.falta(outra) : T.amanha;
+    const depois = INF ? '' : outra ? T.falta(outra) : T.amanha;
     $('fim-texto').textContent = (resultado + ' ' + depois).trim();
     $('fim-outra').hidden = !outra;
-    if (outra) { $('fim-outra').textContent = T.jogar(outra); $('fim-outra').dataset.qual = outra; }
+    if (outra) { $('fim-outra').textContent = INF ? T.proxima : T.jogar(outra); $('fim-outra').dataset.qual = outra; }
     $('fim-fechar').className = outra ? '' : 'principal';
     desenharNumeros($('fim-numeros'), false);
     abrir($('fim'));
   }
   $('fim').addEventListener('close', () => {
-    if ($('fim').returnValue === 'outra') trocar(+$('fim-outra').dataset.qual);
+    if ($('fim').returnValue === 'outra') INF ? proxima() : trocar(+$('fim-outra').dataset.qual);
     $('fim').returnValue = '';
   });
 
   // ---------- Duas palavras por dia ----------
   const seletor = $('seletor');
   function desenharSeletor() {
+    if (INF) {
+      const jogadas = lerNumeros().jogos;
+      seletor.innerHTML = `<span class="contador">${T.palavra(E.fim ? jogadas : jogadas + 1)}</span>`;
+      return;
+    }
     seletor.querySelectorAll('button').forEach((b) => {
       const q = +b.dataset.qual;
       const fim = q === E.qual ? E.fim : carregar(q).fim;
@@ -382,16 +402,28 @@
     E = carregar(qual);
     desenhar();
   }
+  // Infinito: começa a próxima palavra da fila
+  function proxima() {
+    E = novaPartida(1, proximoNumero(E.numero + 1));
+    salvar(); desenhar();
+  }
   seletor.addEventListener('click', (e) => {
+    if (INF) return;
     const b = e.target.closest('button'); if (!b) return;
     b.blur(); trocar(+b.dataset.qual);
   });
 
   // ---------- Botões ----------
+  const TEXTO_DICA = $('btn-dica').textContent;
   function atualizarBotoes() {
-    $('btn-dica').disabled = !!E.fim || E.palpites.length === 0;
+    // No infinito, quando a palavra termina, o botão de dica vira "próxima palavra"
+    const prox = INF && !!E.fim;
+    $('btn-dica').textContent = prox ? T.proxima : TEXTO_DICA;
+    $('btn-dica').classList.toggle('destaque', prox);
+    $('btn-dica').disabled = prox ? false : !!E.fim || E.palpites.length === 0;
   }
   $('btn-dica').addEventListener('click', () => {
+    if (INF && E.fim) return proxima();
     if (!E.palpites.length) return aviso(T.palpitePrimeiro);
     const d = J.dica(E.palpites.map((p) => ({ palpite: p.palavra, verdes: p.verdes, amarelas: p.amarelas })), E.secreta);
     if (!d) return aviso(T.temTudo, 2600);
@@ -433,6 +465,6 @@
   if (E.fim) { registrarResultado(); setTimeout(mostrarFim, 300); }
   // Virou o dia com o app aberto: começa a partida nova
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && E.dia !== J.numeroDoDia()) { E = carregar(primeiraAberta()); desenhar(); }
+    if (!INF && document.visibilityState === 'visible' && E.dia !== J.numeroDoDia()) { E = carregar(primeiraAberta()); desenhar(); }
   });
 })();

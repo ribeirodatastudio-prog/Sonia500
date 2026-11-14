@@ -1,7 +1,7 @@
 // Venecia500 — guarda o app no aparelho para funcionar sem internet.
 // Ao publicar uma versão nova, troque o número abaixo.
 const PREFIXO = 'venecia500-';
-const VERSAO = PREFIXO + 'v1';
+const VERSAO = PREFIXO + 'v2';
 const ARQUIVOS = [
   './', 'index.html', 'config.js', 'palavras.js', 'manifest.json',
   '../style.css', '../jogo.js', '../ui.js',
